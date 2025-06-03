@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  app:
+    build: 
+      context: .
+    ports:
+      - "8090:8090"
+    depends_on:
+      - mongo
+    deploy:
+      mode: replicated
+      replicas: 1
+  
+  mongo:
+    image: 'mongo:4.2.16-bionic'
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_DATABASE: users
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: 1234
+    volumes:
+      - ./db-data/mongo/:/data/db
