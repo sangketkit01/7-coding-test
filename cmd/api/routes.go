@@ -17,6 +17,8 @@ func (app *App) routes() *fiber.App{
 	})
 
 	router.Use(app.LoggingMiddleware())
+	router.Post("/grpc/create-user", app.CreateUserViaGrpc)
+
 	router.Post("/create-user", app.CreateUser)
 	router.Post("/login-user", app.LoginUser)
 
@@ -25,6 +27,8 @@ func (app *App) routes() *fiber.App{
 	authRouter.Get("/all-users", app.ListAllUsers)
 	authRouter.Put("/update-user", app.UpdateUser)
 	authRouter.Delete("/delete-user", app.DeleteUser)
+
+	authRouter.Get("/grpc/get-user/:id", app.GetUserViaGrpc)
 
 	return router
 }

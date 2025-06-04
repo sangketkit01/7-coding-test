@@ -9,6 +9,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/sangketkit01/7-coding-test/internal/db"
 	"github.com/sangketkit01/7-coding-test/internal/token"
+	"github.com/sangketkit01/7-coding-test/pb"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type CreateUserRequest struct {
@@ -221,5 +224,77 @@ func (app *App) DeleteUser(c *fiber.Ctx) error{
 	}
 
 	return c.JSON(fiber.Map{"message" : "Delete user successfully."})
+}
+
+func (app *App) CreateUserViaGrpc(c *fiber.Ctx) error{
+	var req CreateUserRequest
+	if err := c.BodyParser(&req) ; err != nil{
+		return fiber.NewError(fiber.StatusInternalServerError, "bad request")
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	
+
+	conn, err := grpc.Dial("localhost:50001", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil{
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	defer conn.Close()
+
+	service := pb.NewSevenCodingTestClient(conn)
+	
+	serviceResponse, err := service.CreateUser(c.Context(), &pb.CreateUserRequest{
+		Name: req.Name,
+		Email: req.Email,
+		Password: req.Password,
+	})
+
+	if err != nil{
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(fiber.Map{
+		"message" : "Create user successfully.",
+		"name" : serviceResponse.User.Name,
+		"email" : serviceResponse.User.Email,
+	})
+}
+
+func (app *App) GetUserViaGrpc(c *fiber.Ctx) error{
+	p := c.Locals(payloadHeader)
+
+	_, ok := p.(*token.Payload)
+	if !ok {
+		return fiber.NewError(fiber.StatusUnauthorized, "invalid payload")
+	}
+
+	userId := c.Params("id", "")
+	if userId == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "user id is not provided.")
+	}
+
+	conn, err := grpc.Dial("localhost:50001", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil{
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	defer conn.Close()
+
+	service := pb.NewSevenCodingTestClient(conn)
+	
+	serviceResponse, err := service.GetUser(c.Context(), &pb.GetUserRequest{
+		XId: userId,
+	})
+
+	if err !=  nil{
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(serviceResponse.User)
+	
 }
 

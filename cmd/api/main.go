@@ -58,6 +58,8 @@ func main() {
 	app.router = app.routes()
 
 	go app.LogsNumberOfUser()
+	go app.gRPCListen()
+
 	app.router.Listen(fmt.Sprintf(":%s", webPort))
 
 }
