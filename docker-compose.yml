@@ -11,6 +11,8 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+    env_file:
+      - .env.production
   
   mongo:
     image: 'mongo:4.2.16-bionic'
