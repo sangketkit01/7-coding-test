@@ -45,7 +45,6 @@ func main() {
 		env = "local"
 	}
 
-
 	config, err := config.NewConfig("../../", env)
 	if err != nil {
 		log.Panic(err)

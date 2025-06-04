@@ -13,22 +13,12 @@ type Config struct {
 func NewConfig(path, env string) (*Config, error) {
 	viper.AutomaticEnv()
 
-	if env == "local" {
-		viper.SetConfigName(".env.local")
-		viper.AddConfigPath(path)
-		viper.SetConfigType("env")
+	viper.SetConfigName(".env." + env)
+	viper.AddConfigPath(path)
+	viper.SetConfigType("env")
 
-		if err := viper.ReadInConfig(); err != nil {
-			return nil, err
-		}
-	}else if env == "production"{
-		viper.SetConfigName(".env.production")
-		viper.AddConfigPath(path)
-		viper.SetConfigType("env")
-
-		if err := viper.ReadInConfig(); err != nil {
-			return nil, err
-		}
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, err
 	}
 
 	var config Config
@@ -38,4 +28,3 @@ func NewConfig(path, env string) (*Config, error) {
 
 	return &config, nil
 }
-
